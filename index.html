@@ -8,8 +8,15 @@
 </head>
 <body>
     <form action="submit_form.py" method="POST">
-        <label for="fullname">ФИО:</label>
-        <input type="text" id="fullname" name="fullname" maxlength="150" required><br>
+	    
+	<label for="last_name">Фамилия:</label>
+	<input type="text" id="last_name" name="last_name" maxlength="50" required><br>
+
+	<label for="first_name">Имя:</label>
+	<input type="text" id="first_name" name="first_name" maxlength="50" required><br>
+
+	<label for="patronymic">Отчество:</label>
+	<input type="text" id="patronymic" name="patronymic" maxlength="50"><br>
 
         <label for="phone">Телефон:</label>
         <input type="tel" id="phone" name="phone" required><br>
