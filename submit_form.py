@@ -6,10 +6,10 @@ def create_connection():
     connection = None
     try:
         connection = mysql.connector.connect(
-            host='kubsu-dev.ru',
+            host='158.160.145.153',
             user='u68593',
             password='9258357',
-            database='u68593'
+            database='web_db'
         )
         print("Подключение к базе данных успешно")
     except Error as e:
