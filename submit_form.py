@@ -18,58 +18,62 @@ def create_connection():
 
 def validate_form(data):
     errors = []
-    if not data['fullname'] or not all(c.isalpha() or c.isspace() for c in data['fullname']):
-        errors.append("ФИО должно содержать только буквы и пробелы.")
-
-    if len(data['fullname']) > 150:
-        errors.append("ФИО должно быть не длиннее 150 символов.")
-
+    
+    if not data['last_name'] or not all(c.isalpha() or c.isspace() for c in data['last_name']):
+        errors.append("Фамилия должна содержать только буквы и пробелы.")
+    
+    if not data['first_name'] or not all(c.isalpha() or c.isspace() for c in data['first_name']):
+        errors.append("Имя должно содержать только буквы и пробелы.")
+    
+    if data['patronymic'] and not all(c.isalpha() or c.isspace() for c in data['patronymic']):
+        errors.append("Отчество должно содержать только буквы и пробелы.")
+    
     if not data['phone'] or not data['phone'].isdigit():
         errors.append("Телефон должен содержать только цифры.")
-
+    
     if len(data['phone']) < 10 or len(data['phone']) > 15:
         errors.append("Телефон должен быть длиной от 10 до 15 символов.")
-
+    
     if not data['email'] or '@' not in data['email'] or '.' not in data['email']:
         errors.append("Некорректный email. Пример: example@domain.com")
-
+    
     if not data['birthdate']:
         errors.append("Укажите дату рождения.")
-
+    
     if not data['gender'] or data['gender'] not in ['male', 'female']:
         errors.append("Выберите пол.")
-
+    
     if not data['languages']:
         errors.append("Выберите хотя бы один язык программирования.")
-
+    
     if not data['bio'] or len(data['bio'].strip()) < 10:
         errors.append("Биография должна содержать не менее 10 символов.")
 
     if not data['contract']:
         errors.append("Необходимо подтвердить ознакомление с контрактом.")
-
+    
     return errors
 
 def insert_user_data(connection, data):
     cursor = connection.cursor()
     try:
-        # Вставляем данные в таблицу user_data
         cursor.execute("""
-            INSERT INTO user_data (fullname, phone, email, birthdate, gender, bio, contract)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (data['fullname'], data['phone'], data['email'], data['birthdate'], data['gender'], data['bio'], data['contract']))
+            INSERT INTO applications (last_name, first_name, patronymic, phone, email, birthdate, gender, bio, contract)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            data['last_name'], data['first_name'], data['patronymic'],
+            data['phone'], data['email'], data['birthdate'],
+            data['gender'], data['bio'], data['contract']
+        ))
         
-        # Получаем ID вставленной записи
-        user_id = cursor.lastrowid
+        application_id = cursor.lastrowid
 
-        # Вставляем связи в таблицу user_languages
         for language_id in data['languages']:
             cursor.execute("""
-                INSERT INTO user_languages (user_id, language_id)
+                INSERT INTO application_languages (application_id, language_id)
                 VALUES (%s, %s)
-            """, (user_id, language_id))
+            """, (application_id, language_id))
         
-        # Фиксируем изменения в базе данных
         connection.commit()
         print("Данные успешно сохранены")
     except Error as e:
@@ -80,7 +84,9 @@ def insert_user_data(connection, data):
 if __name__ == "__main__":
     form = cgi.FieldStorage()
     data = {
-        'fullname': form.getvalue('fullname', '').strip(),
+        'last_name': form.getvalue('last_name', '').strip(),
+        'first_name': form.getvalue('first_name', '').strip(),
+        'patronymic': form.getvalue('patronymic', '').strip(),
         'phone': form.getvalue('phone', '').strip(),
         'email': form.getvalue('email', '').strip(),
         'birthdate': form.getvalue('birthdate', '').strip(),
