@@ -1,18 +1,20 @@
-import mysql.connector
-from mysql.connector import Error
+#!/usr/bin/env python3
+
 import cgi
+import pymysql
 
 def create_connection():
     connection = None
     try:
-        connection = mysql.connector.connect(
-            host='158.160.145.153',
+        connection = pymysql.connect(
+            host='158.160.150.89',
             user='u68593',
             password='9258357',
-            database='web_db'
+            database='web_db',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
         )
-        print("Подключение к базе данных успешно")
-    except Error as e:
+    except pymysql.Error as e:
         print(f"Ошибка подключения к базе данных: {e}")
     return connection
 
@@ -68,20 +70,38 @@ def insert_user_data(connection, data):
         
         application_id = cursor.lastrowid
 
-        for language_id in data['languages']:
-            cursor.execute("""
-                INSERT INTO application_languages (application_id, language_id)
-                VALUES (%s, %s)
-            """, (application_id, language_id))
+        language_ids = {
+            'Pascal': 1,
+            'C': 2,
+            'C++': 3,
+            'JavaScript': 4,
+            'PHP': 5,
+            'Python': 6,
+            'Java': 7,
+            'Haskel': 8,
+            'Clojure': 9,
+            'Prolog': 10,
+            'Scala': 11,
+            'Go': 12
+        }
+
+        for language in data['languages']:
+            language_id = language_ids.get(language)
+            if language_id:
+                cursor.execute("""
+                    INSERT INTO application_languages (application_id, language_id)
+                    VALUES (%s, %s)
+                """, (application_id, language_id))
         
         connection.commit()
-        print("Данные успешно сохранены")
-    except Error as e:
+    except pymysql.Error as e:
         print(f"Ошибка при вставке данных: {e}")
     finally:
         cursor.close()
 
 if __name__ == "__main__":
+    print("Content-Type: text/html; charset=utf-8\n")
+
     form = cgi.FieldStorage()
     data = {
         'last_name': form.getvalue('last_name', '').strip(),
@@ -98,8 +118,6 @@ if __name__ == "__main__":
 
     errors = validate_form(data)
     if errors:
-        print("Content-Type: text/html")
-        print()
         print("<h1>Ошибки:</h1>")
         for error in errors:
             print(f"<p>{error}</p>")
@@ -108,6 +126,4 @@ if __name__ == "__main__":
         if connection:
             insert_user_data(connection, data)
             connection.close()
-            print("Content-Type: text/html")
-            print()
             print("<h1>Данные успешно сохранены</h1>")
